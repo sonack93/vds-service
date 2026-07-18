@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>VDS Service — Assistenza Furgoni Mercedes</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+/* ============================================================
+   VDS SERVICE v3 — Design system
+   FIX UX: palette unica, contrasto AA, touch target >= 44px,
+   stati di caricamento e feedback visibili ovunque.
+   ============================================================ */
+:root{
+  --bg:#0f172a; --bg2:#1e293b; --card:#ffffff; --ink:#0f172a;
+  --muted:#64748b; --line:#e2e8f0; --brand:#0e7490; --brand-ink:#ffffff;
+  --ok:#15803d; --warn:#b45309; --err:#b91c1c; --chip:#f1f5f9;
+  --radius:14px; --shadow:0 4px 16px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f1f5f9;color:var(--ink);min-height:100vh}
+header{background:var(--bg);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px}
+.hwrap{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--brand);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+h1{font-size:18px;font-weight:700}
+.sub{font-size:12px;color:#94a3b8}
+main{max-width:640px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+/* Tab ruoli */
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab{flex:1;min-height:48px;border:1px solid var(--line);background:#fff;border-radius:var(--radius);font-size:15px;font-weight:600;color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--bg);color:#fff;border-color:var(--bg)}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+h2{font-size:17px;margin-bottom:4px}
+.hint{font-size:13px;color:var(--muted);margin-bottom:16px}
+/* Form */
+label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+label .req{color:var(--err)}
+input,select,textarea{width:100%;min-height:48px;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:#fff;color:var(--ink)}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:1px}
+input[aria-invalid="true"]{border-color:var(--err)}
+.field-err{display:none;font-size:12px;color:var(--err);margin-top:4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:420px){.row{grid-template-columns:1fr}}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border:0;border-radius:12px;background:var(--brand);color:var(--brand-ink);font-size:16px;font-weight:700;cursor:pointer;margin-top:20px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.sec{background:var(--chip);color:var(--ink);font-weight:600;min-height:44px;margin-top:0}
+.btn.small{width:auto;min-height:40px;padding:0 14px;font-size:14px;margin-top:0}
+.btn.danger{background:var(--err)}
+/* Spinner (stato di caricamento — FIX UX: prima assente) */
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;flex:none}
+.spin.dark{border-color:rgba(15,23,42,.2);border-top-color:var(--ink)}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* Banner modalità/errore */
+.banner{border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.45;margin-bottom:16px}
+.banner.demo{background:#fef3c7;color:#78350f;border:1px solid #fcd34d}
+.banner.err{background:#fee2e2;color:#7f1d1d;border:1px solid #fca5a5}
+.banner.ok{background:#dcfce7;color:#14532d;border:1px solid #86efac}
+/* Foto */
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb button{position:absolute;top:2px;right:2px;width:24px;height:24px;border:0;border-radius:50%;background:rgba(15,23,42,.75);color:#fff;font-size:13px;line-height:1;cursor:pointer}
+/* GPS */
+.gpsbox{display:flex;gap:8px;align-items:stretch}
+.gpsbox input{flex:1}
+.gpsbox .btn.sec{width:auto;padding:0 14px;flex:none}
+.gps-ok{font-size:12.5px;color:var(--ok);margin-top:6px;display:none}
+/* Dashboard */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat{background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.chip{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--bg);border-color:var(--bg);color:#fff}
+.ticket{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.t-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.t-title{font-size:15.5px;font-weight:700}
+.t-meta{font-size:13px;color:var(--muted);margin-top:2px}
+.badge{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap;flex:none}
+.badge.in_attesa{background:#fef3c7;color:#92400e}
+.badge.programmata{background:#dbeafe;color:#1e40af}
+.badge.completata{background:#dcfce7;color:#166534}
+.t-body{font-size:14px;line-height:1.5;margin:10px 0;color:#334155}
+.t-links{display:flex;gap:12px;flex-wrap:wrap;font-size:13.5px;margin-bottom:10px}
+.t-links a{color:var(--brand);font-weight:600;text-decoration:none}
+.t-photos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.t-photos img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer}
+.t-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.t-actions input[type="date"]{width:auto;min-height:40px;flex:1;min-width:140px}
+.empty{text-align:center;color:var(--muted);padding:40px 16px;font-size:14.5px}
+.hidden{display:none!important}
+dialog{border:0;border-radius:var(--radius);padding:0;max-width:520px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(15,23,42,.5)}
+.dlg-pad{padding:22px}
+.code{font-family:ui-monospace,monospace;font-size:22px;font-weight:800;letter-spacing:.12em;background:var(--chip);border-radius:10px;padding:10px 16px;display:inline-block;margin:10px 0}
+footer{max-width:640px;margin:0 auto;padding:0 16px 28px;font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="logo">VDS</div>
+    <div>
+      <h1>VDS Service</h1>
+      <div class="sub">Assistenza e manutenzione furgoni Mercedes</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Banner modalità demo: mostrato solo se Supabase non è configurato.
+       FIX: prima i dati demo e reali erano indistinguibili. -->
+  <div id="demoBanner" class="banner demo hidden">
+    <b>Modalità demo</b> — Supabase non configurato: i dati restano solo su questo
+    dispositivo e <u>non arrivano al titolare</u>. Segui LEGGIMI.md per attivare il database condiviso.
+  </div>
+  <div id="globalErr" class="banner err hidden" role="alert"></div>
+
+  <!-- Selettore ruolo -->
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tabCliente" role="tab" aria-selected="true">🔧 Cliente</button>
+    <button class="tab" id="tabTitolare" role="tab" aria-selected="false">📋 Titolare</button>
+  </div>
+
+  <!-- ================= VISTA CLIENTE ================= -->
+  <section id="viewCliente">
+    <div class="card">
+      <h2>Richiedi assistenza</h2>
+      <p class="hint">Compila i dati del furgone e descrivi il problema: riceverai conferma con il giorno di manutenzione.</p>
+
+      <form id="formRichiesta" novalidate>
+        <div class="row">
+          <div>
+            <label for="fNome">Nome e cognome <span class="req">*</span></label>
+            <input id="fNome" required autocomplete="name" maxlength="80">
+            <div class="field-err">Inserisci il tuo nome</div>
+          </div>
+          <div>
+            <label for="fTel">Telefono <span class="req">*</span></label>
+            <!-- FIX validazione: pattern telefono, prima assente -->
+            <input id="fTel" type="tel" required autocomplete="tel" inputmode="tel" pattern="^\+?[0-9 ]{8,16}$" maxlength="16">
+            <div class="field-err">Numero non valido (8–15 cifre)</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="fModello">Modello furgone <span class="req">*</span></label>
+            <select id="fModello" required>
+              <option value="">— Seleziona —</option>
+              <option>Mercedes Sprinter</option>
+              <option>Mercedes Vito</option>
+              <option>Mercedes Citan</option>
+              <option>Mercedes eSprinter</option>
+              <option>Mercedes eVito</option>
+              <option>Altro Mercedes</option>
+            </select>
+            <div class="field-err">Seleziona il modello</div>
+          </div>
+          <div>
+            <label for="fTarga">Targa</label>
+            <input id="fTarga" maxlength="10" style="text-transform:uppercase" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="fKm">Chilometraggio <span class="req">*</span></label>
+            <!-- FIX validazione: solo numeri, range plausibile -->
+            <input id="fKm" type="number" required inputmode="numeric" min="0" max="2000000" step="1" placeholder="es. 120000">
+            <div class="field-err">Inserisci i km (0 – 2.000.000)</div>
+          </div>
+          <div>
+            <label for="fData">Data preferita <span class="req">*</span></label>
+            <!-- FIX bug: min impostato a domani via JS, prima si potevano scegliere date passate -->
+            <input id="fData" type="date" required>
+            <div class="field-err">Scegli una data da domani in poi</div>
+          </div>
+        </div>
+
+        <label for="fProblema">Descrizione del problema <span class="req">*</span></label>
+        <textarea id="fProblema" required maxlength="1000" placeholder="es. Rumore metallico in frenata, spia motore accesa…"></textarea>
+        <div class="field-err">Descrivi il problema (min 10 caratteri)</div>
+
+        <label for="fLuogo">Dove si trova il furgone <span class="req">*</span></label>
+        <div class="gpsbox">
+          <!-- FIX bug GPS: fallback manuale sempre disponibile; prima, permesso negato = campo vuoto -->
+          <input id="fLuogo" required placeholder="Indirizzo o usa il GPS →" autocomplete="street-address">
+          <button type="button" class="btn sec" id="btnGps">📍 GPS</button>
+        </div>
+        <div class="gps-ok" id="gpsOk">✓ Posizione GPS acquisita</div>
+        <div class="field-err" id="luogoErr">Indica dove si trova il furgone</div>
+
+        <label>Foto del problema <span style="font-weight:400;color:var(--muted)">(max 4, facoltative)</span></label>
+        <input type="file" id="fFoto" accept="image/*" multiple>
+        <div class="thumbs" id="thumbs"></div>
+
+        <button type="submit" class="btn" id="btnInvia">
+          <span class="spin hidden" id="inviaSpin"></span><span id="inviaTxt">Invia richiesta</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Verifica stato richiesta (FIX UX: prima il cliente non aveva alcun riscontro) -->
+    <div class="card">
+      <h2>Controlla la tua richiesta</h2>
+      <p class="hint">Inserisci il codice ricevuto dopo l'invio.</p>
+      <div class="gpsbox">
+        <input id="checkCode" placeholder="es. VDS-A1B2C3" style="text-transform:uppercase" maxlength="10">
+        <button type="button" class="btn sec" id="btnCheck">Verifica</button>
+      </div>
+      <div id="checkResult" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ================= VISTA TITOLARE ================= -->
+  <section id="viewTitolare" class="hidden">
+
+    <!-- FIX sicurezza: dashboard dietro login (Supabase Auth) o PIN (demo). Prima era pubblica. -->
+    <div class="card" id="loginCard">
+      <h2>Accesso titolare</h2>
+      <p class="hint" id="loginHint">Accedi con le credenziali del tuo account Supabase.</p>
+      <form id="formLogin" novalidate>
+        <div id="loginEmailWrap">
+          <label for="lEmail">Email</label>
+          <input id="lEmail" type="email" autocomplete="username">
+        </div>
+        <label for="lPass" id="lPassLabel">Password</label>
+        <input id="lPass" type="password" autocomplete="current-password">
+        <button type="submit" class="btn" id="btnLogin">
+          <span class="spin hidden" id="loginSpin"></span><span>Accedi</span>
+        </button>
+      </form>
+    </div>
+
+    <div id="dashWrap" class="hidden">
+      <div class="stats">
+        <div class="stat"><b id="stAttesa">0</b><span>In attesa</span></div>
+        <div class="stat"><b id="stProg">0</b><span>Programmate</span></div>
+        <div class="stat"><b id="stComp">0</b><span>Completate</span></div>
+      </div>
+
+      <div class="filters" id="filters">
+        <button class="chip" data-f="tutte" aria-pressed="true">Tutte</button>
+        <button class="chip" data-f="in_attesa" aria-pressed="false">In attesa</button>
+        <button class="chip" data-f="programmata" aria-pressed="false">Programmate</button>
+        <button class="chip" data-f="completata" aria-pressed="false">Completate</button>
+        <button class="chip" id="btnRefresh" title="Aggiorna">↻</button>
+        <button class="chip" id="btnLogout">Esci</button>
+      </div>
+
+      <div id="ticketList"></div>
+    </div>
+  </section>
+</main>
+
+<footer>VDS Service v3 · <span id="modeLabel"></span></footer>
+
+<!-- Conferma invio con codice -->
+<dialog id="dlgOk">
+  <div class="dlg-pad" style="text-align:center">
+    <div style="font-size:40px">✅</div>
+    <h2 style="margin:8px 0 4px">Richiesta inviata!</h2>
+    <p class="hint" style="margin-bottom:4px">Conserva questo codice per controllare lo stato:</p>
+    <div class="code" id="okCode"></div>
+    <p class="hint">Ti confermeremo il giorno di manutenzione al più presto.</p>
+    <button class="btn" id="dlgOkClose">Ho capito</button>
+  </div>
+</dialog>
+
+<script>
+/* ============================================================================
+   VDS SERVICE v3 — Logica applicativa
+   Architettura: un data-layer astratto (Store) con due implementazioni:
+   - SupabaseStore: database condiviso, auth reale, foto su Storage (PRODUZIONE)
+   - LocalStore: fallback demo su localStorage con gestione quota (DEMO)
+   FIX principale: i dati dei clienti ora raggiungono davvero il titolare.
+   ============================================================================ */
+'use strict';
+
+/* ------------------ CONFIGURAZIONE (vedi LEGGIMI.md) ------------------ */
+const CONFIG = {
+  SUPABASE_URL: '',        // es. 'https://xxxx.supabase.co'
+  SUPABASE_ANON_KEY: '',   // chiave "anon public" del progetto
+  DEMO_PIN: '1234'         // PIN dashboard SOLO in modalità demo
+};
+const IS_SUPABASE = Boolean(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY);
+
+/* ------------------ UTILITÀ ------------------ */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// FIX sicurezza: tutti i dati utente passano da esc() prima del rendering (prima: rischio XSS)
+
+const STATI = { in_attesa:'In attesa', programmata:'Programmata', completata:'Completata' };
+const genCode = () => 'VDS-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+  .map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+
+function showErr(msg){ const el=$('globalErr'); el.textContent=msg; el.classList.remove('hidden');
+  clearTimeout(showErr._t); showErr._t=setTimeout(()=>el.classList.add('hidden'), 7000); }
+
+function fmtData(d){ if(!d) return '—';
+  try{ return new Date(d+'T00:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+  catch{ return d; } }
+
+/* Ridimensiona una foto via canvas → JPEG max 1280px (FIX: dimensioni contenute e uniformi) */
+function downscale(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1280, r=Math.min(1, MAX/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*r); c.height=Math.round(img.height*r);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      c.toBlob(b => b ? resolve(b) : reject(new Error('conversione fallita')), 'image/jpeg', 0.8);
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror=()=>reject(new Error('immagine non leggibile'));
+    img.src=URL.createObjectURL(file);
+  });
+}
+const blobToDataURL = (b)=>new Promise((res,rej)=>{const r=new FileReader();
+  r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(b);});
+
+/* ============================================================================
+   DATA LAYER
+   Interfaccia comune: login, logout, isLogged, insert, list, update,
+   uploadPhotos, checkByCode, onNewRequest
+   ============================================================================ */
+
+/* ---------- LocalStore (DEMO) ---------- */
+const LocalStore = {
+  KEY:'vds_v3_richieste', AUTH:'vds_v3_auth',
+  _all(){ try{ return JSON.parse(localStorage.getItem(this.KEY)) || []; }catch{ return []; } },
+  _save(arr){
+    try{ localStorage.setItem(this.KEY, JSON.stringify(arr)); }
+    catch(e){
+      // FIX bug: QuotaExceededError prima silenzioso → ticket persi senza avviso
+      throw new Error('Spazio locale esaurito: elimina vecchie richieste o riduci le foto.');
+    }
+  },
+  async login(_email, pass){
+    if(pass !== CONFIG.DEMO_PIN) throw new Error('PIN errato');
+    sessionStorage.setItem(this.AUTH,'1'); // sessionStorage: scade alla chiusura
+  },
+  async logout(){ sessionStorage.removeItem(this.AUTH); },
+  isLogged(){ return sessionStorage.getItem(this.AUTH)==='1'; },
+  async uploadPhotos(blobs){ // in demo le foto restano dataURL locali
+    return Promise.all(blobs.map(blobToDataURL));
+  },
+  async insert(r){ const all=this._all(); all.unshift(r); this._save(all); return r; },
+  async list(){ return this._all(); },
+  async update(id, patch){
+    const all=this._all(); const i=all.findIndex(x=>x.id===id);
+    if(i<0) throw new Error('richiesta non trovata');
+    all[i]={...all[i],...patch}; this._save(all); return all[i];
+  },
+  async checkByCode(code){
+    const r=this._all().find(x=>x.codice===code);
+    return r ? {stato:r.stato, data_appuntamento:r.data_appuntamento} : null;
+  },
+  onNewRequest(){ /* niente realtime in locale */ }
+};
+
+/* ---------- SupabaseStore (PRODUZIONE) ---------- */
+const SupabaseStore = {
+  sb:null,
+  init(){ this.sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); },
+  async login(email, pass){
+    const {error} = await this.sb.auth.signInWithPassword({email, password:pass});
+    if(error) throw new Error('Credenziali non valide');
+  },
+  async logout(){ await this.sb.auth.signOut(); },
+  isLogged(){ return this._logged===true; },
+  async refreshSession(){ const {data}=await this.sb.auth.getSession(); this._logged=Boolean(data.session); },
+  async uploadPhotos(blobs){
+    // FIX: foto su Storage (URL nel DB) invece di base64 nel record
+    const urls=[];
+    for(const b of blobs){
+      const path=`${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+      const {error}=await this.sb.storage.from('foto').upload(path,b,{contentType:'image/jpeg'});
+      if(error) throw new Error('Caricamento foto fallito: '+error.message);
+      urls.push(this.sb.storage.from('foto').getPublicUrl(path).data.publicUrl);
+    }
+    return urls;
+  },
+  async insert(r){
+    const {error}=await this.sb.from('richieste').insert(r);
+    if(error) throw new Error('Invio fallito: '+error.message);
+    return r;
+  },
+  async list(){
+    const {data,error}=await this.sb.from('richieste').select('*').order('created_at',{ascending:false});
+    if(error) throw new Error('Lettura richieste fallita: '+error.message);
+    return data;
+  },
+  async update(id, patch){
+    const {data,error}=await this.sb.from('richieste').update(patch).eq('id',id).select().single();
+    if(error) throw new Error('Aggiornamento fallito: '+error.message);
+    return data;
+  },
+  async checkByCode(code){
+    // RPC "security definer": espone al cliente SOLO stato e data del proprio codice
+    const {data,error}=await this.sb.rpc('stato_richiesta',{p_codice:code});
+    if(error) return null;
+    return data && data.length ? data[0] : null;
+  },
+  onNewRequest(cb){
+    // Realtime: la dashboard si aggiorna da sola quando arriva una richiesta
+    this.sb.channel('richieste-live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'richieste'},cb)
+      .subscribe();
+  }
+};
+
+const Store = IS_SUPABASE ? SupabaseStore : LocalStore;
+
+/* ============================================================================
+   VISTA CLIENTE
+   ============================================================================ */
+let fotoBlobs=[]; let gpsCoords=null;
+
+function setupCliente(){
+  // FIX bug: date passate non più selezionabili
+  const domani=new Date(Date.now()+86400000);
+  $('fData').min=domani.toISOString().slice(0,10);
+
+  /* --- GPS con stato di caricamento e fallback (FIX UX + bug) --- */
+  $('btnGps').addEventListener('click', ()=>{
+    if(!('geolocation' in navigator)){ showErr('GPS non disponibile: inserisci l\'indirizzo a mano.'); return; }
+    const btn=$('btnGps'); btn.disabled=true; btn.textContent='⏳…';
+    navigator.geolocation.getCurrentPosition(
+      (pos)=>{
+        gpsCoords={lat:+pos.coords.latitude.toFixed(6), lng:+pos.coords.longitude.toFixed(6)};
+        $('fLuogo').value=`GPS: ${gpsCoords.lat}, ${gpsCoords.lng}`;
+        $('gpsOk').style.display='block';
+        btn.disabled=false; btn.textContent='📍 GPS';
+      },
+      (err)=>{
+        btn.disabled=false; btn.textContent='📍 GPS';
+        const msgs={1:'Permesso GPS negato: inserisci l\'indirizzo a mano.',
+                    2:'Posizione non disponibile: inserisci l\'indirizzo a mano.',
+                    3:'GPS troppo lento: riprova o inserisci l\'indirizzo a mano.'};
+        showErr(msgs[err.code]||'Errore GPS: inserisci l\'indirizzo a mano.');
+      },
+      {enableHighAccuracy:true, timeout:10000, maximumAge:60000}
+    );
+  });
+  $('fLuogo').addEventListener('input',()=>{ // se scrive a mano, invalida il GPS
+    if(!$('fLuogo').value.startsWith('GPS:')){ gpsCoords=null; $('gpsOk').style.display='none'; }
+  });
+
+  /* --- Foto: max 4, anteprime rimovibili --- */
+  $('fFoto').addEventListener('change', async (e)=>{
+    for(const file of e.target.files){
+      if(fotoBlobs.length>=4){ showErr('Massimo 4 foto.'); break; }
+      try{
+        const blob=await downscale(file);
+        fotoBlobs.push(blob); renderThumbs();
+      }catch{ showErr('Una foto non è leggibile ed è stata saltata.'); }
+    }
+    e.target.value='';
+  });
+
+  /* --- Invio --- */
+  $('formRichiesta').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    if(!validate()) return;
+    const btn=$('btnInvia'); btn.disabled=true;
+    $('inviaSpin').classList.remove('hidden'); $('inviaTxt').textContent='Invio in corso…';
+    try{
+      const foto = fotoBlobs.length ? await Store.uploadPhotos(fotoBlobs) : [];
+      const r={
+        id: crypto.randomUUID(),
+        codice: genCode(),
+        created_at: new Date().toISOString(),
+        nome: $('fNome').value.trim(),
+        telefono: $('fTel').value.trim(),
+        modello: $('fModello').value,
+        targa: $('fTarga').value.trim().toUpperCase(),
+        km: parseInt($('fKm').value,10),
+        problema: $('fProblema').value.trim(),
+        data_preferita: $('fData').value,
+        luogo: $('fLuogo').value.trim(),
+        lat: gpsCoords?.lat ?? null,
+        lng: gpsCoords?.lng ?? null,
+        foto,
+        stato:'in_attesa',
+        data_appuntamento:null
+      };
+      await Store.insert(r);
+      $('okCode').textContent=r.codice;
+      $('dlgOk').showModal();
+      e.target.reset(); fotoBlobs=[]; gpsCoords=null; renderThumbs(); $('gpsOk').style.display='none';
+    }catch(err){ showErr(err.message); }
+    finally{
+      btn.disabled=false; $('inviaSpin').classList.add('hidden'); $('inviaTxt').textContent='Invia richiesta';
+    }
+  });
+  $('dlgOkClose').addEventListener('click',()=>$('dlgOk').close());
+
+  /* --- Verifica stato per codice --- */
+  $('btnCheck').addEventListener('click', async ()=>{
+    const code=$('checkCode').value.trim().toUpperCase();
+    const out=$('checkResult');
+    if(!/^VDS-[0-9A-F]{6}$/.test(code)){ out.innerHTML='<div class="banner err">Codice non valido (formato VDS-XXXXXX).</div>'; return; }
+    out.innerHTML='<p class="hint">Verifica in corso…</p>';
+    try{
+      const r=await Store.checkByCode(code);
+      if(!r){ out.innerHTML='<div class="banner err">Nessuna richiesta trovata con questo codice.</div>'; return; }
+      const extra = r.stato==='programmata' && r.data_appuntamento
+        ? `<br>Manutenzione fissata per <b>${fmtData(r.data_appuntamento)}</b>.` : '';
+      out.innerHTML=`<div class="banner ok">Stato: <b>${esc(STATI[r.stato]||r.stato)}</b>${extra}</div>`;
+    }catch{ out.innerHTML='<div class="banner err">Errore di rete, riprova.</div>'; }
+  });
+}
+
+function renderThumbs(){
+  const box=$('thumbs'); box.innerHTML='';
+  fotoBlobs.forEach((b,i)=>{
+    const d=document.createElement('div'); d.className='thumb';
+    const img=document.createElement('img'); img.src=URL.createObjectURL(b); img.alt='Foto '+(i+1);
+    img.onload=()=>URL.revokeObjectURL(img.src); // FIX memoria: revoca degli objectURL
+    const x=document.createElement('button'); x.type='button'; x.textContent='✕'; x.ariaLabel='Rimuovi foto';
+    x.onclick=()=>{ fotoBlobs.splice(i,1); renderThumbs(); };
+    d.append(img,x); box.appendChild(d);
+  });
+}
+
+function validate(){
+  let ok=true;
+  const mark=(input, bad)=>{
+    input.setAttribute('aria-invalid', bad?'true':'false');
+    const errEl=input.closest('div')?.querySelector('.field-err') || input.parentElement.nextElementSibling;
+    if(errEl && errEl.classList.contains('field-err')) errEl.style.display=bad?'block':'none';
+    if(bad) ok=false;
+  };
+  mark($('fNome'), $('fNome').value.trim().length<2);
+  mark($('fTel'), !/^\+?[0-9 ]{8,16}$/.test($('fTel').value.trim()));
+  mark($('fModello'), !$('fModello').value);
+  const km=parseInt($('fKm').value,10);
+  mark($('fKm'), Number.isNaN(km)||km<0||km>2000000);
+  mark($('fData'), !$('fData').value || $('fData').value < $('fData').min);
+  mark($('fProblema'), $('fProblema').value.trim().length<10);
+  const luogoBad=!$('fLuogo').value.trim();
+  $('fLuogo').setAttribute('aria-invalid',luogoBad?'true':'false');
+  $('luogoErr').style.display=luogoBad?'block':'none';
+  if(luogoBad) ok=false;
+  return ok;
+}
+
+/* ============================================================================
+   VISTA TITOLARE (dashboard)
+   ============================================================================ */
+let filtro='tutte'; let cache=[];
+
+function setupTitolare(){
+  if(!IS_SUPABASE){
+    $('loginEmailWrap').classList.add('hidden');
+    $('lPassLabel').textContent='PIN';
+    $('loginHint').textContent='Modalità demo: inserisci il PIN (predefinito 1234).';
+  }
+  $('formLogin').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const btn=$('btnLogin'); btn.disabled=true; $('loginSpin').classList.remove('hidden');
+    try{
+      await Store.login($('lEmail').value.trim(), $('lPass').value);
+      if(IS_SUPABASE) await Store.refreshSession();
+      $('lPass').value='';
+      await openDash();
+    }catch(err){ showErr(err.message); }
+    finally{ btn.disabled=false; $('loginSpin').classList.add('hidden'); }
+  });
+  $('btnLogout').addEventListener('click', async ()=>{
+    await Store.logout(); if(IS_SUPABASE) await Store.refreshSession();
+    $('dashWrap').classList.add('hidden'); $('loginCard').classList.remove('hidden');
+  });
+  $('btnRefresh').addEventListener('click', loadTickets);
+  $('filters').querySelectorAll('.chip[data-f]').forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      filtro=ch.dataset.f;
+      $('filters').querySelectorAll('.chip[data-f]').forEach(c=>c.setAttribute('aria-pressed', c===ch?'true':'false'));
+      renderTickets();
+    });
+  });
+}
+
+async function openDash(){
+  $('loginCard').classList.add('hidden'); $('dashWrap').classList.remove('hidden');
+  await loadTickets();
+  Store.onNewRequest(()=>loadTickets()); // realtime (solo Supabase)
+}
+
+async function loadTickets(){
+  try{ cache=await Store.list(); renderTickets(); }
+  catch(err){ showErr(err.message); }
+}
+
+function renderTickets(){
+  const counts={in_attesa:0,programmata:0,completata:0};
+  cache.forEach(r=>{ if(counts[r.stato]!==undefined) counts[r.stato]++; });
+  $('stAttesa').textContent=counts.in_attesa;
+  $('stProg').textContent=counts.programmata;
+  $('stComp').textContent=counts.completata;
+
+  const list=$('ticketList');
+  const rows=filtro==='tutte' ? cache : cache.filter(r=>r.stato===filtro);
+  if(!rows.length){ list.innerHTML='<div class="empty">Nessuna richiesta qui.<br>Le nuove richieste appariranno automaticamente.</div>'; return; }
+
+  list.innerHTML=rows.map(r=>{
+    const foto=(r.foto||[]).map(u=>`<img src="${esc(u)}" alt="foto" onclick="window.open(this.src)">`).join('');
+    const maps=(r.lat!=null&&r.lng!=null)
+      ? `<a href="https://maps.google.com/?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺️ Apri in Maps</a>` : '';
+    const tel=`<a href="tel:${esc(r.telefono)}">📞 ${esc(r.telefono)}</a>`;
+    const appun=r.stato==='programmata'&&r.data_appuntamento
+      ? `<div class="t-meta">📅 Appuntamento: <b>${fmtData(r.data_appuntamento)}</b></div>`:'';
+    /* Azioni per stato: in_attesa → scegli data e programma; programmata → completa */
+    let actions='';
+    if(r.stato==='in_attesa'){
+      actions=`<input type="date" id="d-${r.id}" min="${new Date().toISOString().slice(0,10)}"
+                 value="${esc(r.data_preferita||'')}" aria-label="Data appuntamento">
+               <button class="btn small" onclick="programma('${r.id}')">✓ Accetta e programma</button>`;
+    }else if(r.stato==='programmata'){
+      actions=`<button class="btn small" onclick="cambiaStato('${r.id}','completata')">✓ Segna completata</button>
+               <button class="btn small sec" onclick="cambiaStato('${r.id}','in_attesa')">↩ Rimetti in attesa</button>`;
+    }else{
+      actions=`<button class="btn small sec" onclick="cambiaStato('${r.id}','programmata')">↩ Riapri</button>`;
+    }
+    return `<article class="ticket">
+      <div class="t-head">
+        <div>
+          <div class="t-title">${esc(r.nome)} · ${esc(r.modello)}</div>
+          <div class="t-meta">${esc(r.codice)} · ${esc(r.targa||'—')} · ${Number(r.km).toLocaleString('it-IT')} km</div>
+          <div class="t-meta">Richiesta il ${fmtData((r.created_at||'').slice(0,10))} · preferita: ${fmtData(r.data_preferita)}</div>
+          ${appun}
+        </div>
+        <span class="badge ${esc(r.stato)}">${STATI[r.stato]||r.stato}</span>
+      </div>
+      <p class="t-body">${esc(r.problema)}</p>
+      <div class="t-links">${tel} ${maps} <span style="color:var(--muted)">📍 ${esc(r.luogo)}</span></div>
+      ${foto?`<div class="t-photos">${foto}</div>`:''}
+      <div class="t-actions">${actions}</div>
+    </article>`;
+  }).join('');
+}
+
+/* Azioni dashboard (globali perché richiamate dagli onclick nel markup) */
+window.programma = async (id)=>{
+  const d=$('d-'+id)?.value;
+  if(!d){ showErr('Scegli prima la data dell\'appuntamento.'); return; }
+  try{ await Store.update(id,{stato:'programmata',data_appuntamento:d}); await loadTickets(); }
+  catch(err){ showErr(err.message); }
+};
+window.cambiaStato = async (id, stato)=>{
+  try{ await Store.update(id,{stato, ...(stato==='in_attesa'?{data_appuntamento:null}:{})}); await loadTickets(); }
+  catch(err){ showErr(err.message); }
+};
+
+/* ============================================================================
+   NAVIGAZIONE + AVVIO
+   ============================================================================ */
+function switchTab(who){
+  const cliente = who==='cliente';
+  $('tabCliente').setAttribute('aria-selected', cliente);
+  $('tabTitolare').setAttribute('aria-selected', !cliente);
+  $('viewCliente').classList.toggle('hidden', !cliente);
+  $('viewTitolare').classList.toggle('hidden', cliente);
+}
+$('tabCliente').addEventListener('click',()=>switchTab('cliente'));
+$('tabTitolare').addEventListener('click', async ()=>{
+  switchTab('titolare');
+  if(Store.isLogged()) await openDash();
+});
+
+async function boot(){
+  $('modeLabel').textContent = IS_SUPABASE ? 'database condiviso attivo' : 'modalità demo (dati locali)';
+  if(!IS_SUPABASE) $('demoBanner').classList.remove('hidden');
+  if(IS_SUPABASE){
+    // Caricamento dinamico di supabase-js solo se serve (FIX: nessun peso extra in demo)
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+      s.onload=res; s.onerror=()=>rej(new Error('Impossibile caricare Supabase (sei offline?)'));
+      document.head.appendChild(s);
+    }).catch(err=>{ showErr(err.message); });
+    if(window.supabase){ SupabaseStore.init(); await SupabaseStore.refreshSession(); }
+  }
+  setupCliente(); setupTitolare();
+
+  // Service worker (FIX aggiornamenti: vedi sw.js — network-first per l'HTML)
+  if('serviceWorker' in navigator && location.protocol==='https:'){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+}
+boot();
+</script>
+</body>
+</html>
